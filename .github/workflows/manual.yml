@@ -25,10 +25,10 @@ jobs:
 
     - name: Build and Tag Docker Image
       run: |
-        docker build -t europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest .
-        docker tag europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:${{ github.sha }}
+        docker build -t europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest .
+        docker tag europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:${{ github.sha }}
 
     - name: Push Docker Images
       run: |
-        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest
-        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:${{ github.sha }}
+        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest
+        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:${{ github.sha }}
