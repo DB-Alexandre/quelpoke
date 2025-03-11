@@ -23,12 +23,30 @@ jobs:
     - name: Configure Docker authentication
       run: gcloud auth configure-docker europe-west9-docker.pkg.dev
 
+    - name: Define Image Version
+      run: |
+        IMAGE_VERSION=${{ github.sha }}
+        echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
+
     - name: Build and Tag Docker Image
       run: |
-        docker build -t europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest .
-        docker tag europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:${{ github.sha }}
+        docker build -t europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest .
+        docker tag europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:$IMAGE_VERSION
 
     - name: Push Docker Images
       run: |
-        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest
-        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:${{ github.sha }}
+        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest
+        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:$IMAGE_VERSION
+
+    - name: Verify Image Exists in Artifact Registry
+      run: |
+        IMAGE_FOUND=$(gcloud artifacts docker images list europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre \
+        --format="value(DISPLAY_NAME)" | grep -c "my-app")
+
+        if [[ "$IMAGE_FOUND" -eq 0 ]]; then
+          echo "❌ ERREUR : L'image Docker n'a PAS été trouvée sur Artifact Registry !"
+          exit 1
+        else
+          echo "✅ L'image Docker est bien présente sur Artifact Registry."
+          gcloud artifacts docker images list europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre --format="table(DISPLAY_NAME, TAGS, CREATE_TIME)"
+        fi
