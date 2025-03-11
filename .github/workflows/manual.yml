@@ -62,7 +62,7 @@ jobs:
         echo "🐳 Téléchargement et exécution de l’image depuis Artifact Registry..."
 
         # Récupérer l’image la plus récente
-        docker pull europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest
+        docker pull europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest
 
         # Lancer le conteneur en arrière-plan
         docker run -d --name pokemon -p 3000:8080 europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest
