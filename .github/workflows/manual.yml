@@ -3,9 +3,9 @@ name: Build and Push to Artifact Registry
 on:
   push:
     branches:
-      - main  # Exécute l'action à chaque push sur main
+      - main  # Déclenchement du workflow sur push vers main
   tags:
-    - 'v*'  # Exécute aussi l'action lors du push d'un tag versionné (ex: v1.0.0)
+    - 'v*'  # Déclenchement sur les tags versionnés (ex: v1.0.0)
 
 jobs:
   deploy:
@@ -24,7 +24,7 @@ jobs:
         BRANCH=$(echo ${GITHUB_REF#refs/heads/})
         COMMIT_SHA=$(git rev-parse --short HEAD)
         TAG_VERSION=$(git describe --tags --always || echo "no-tag")
-        
+
         if [[ "$GITHUB_REF" == refs/tags/* ]]; then
           VERSION=${GITHUB_REF#refs/tags/}
         elif [[ "$TAG_VERSION" != "no-tag" ]]; then
