@@ -3,9 +3,11 @@ name: Build and Push to Artifact Registry
 on:
   push:
     branches:
-      - main  # Déclenchement du workflow sur push vers main
-  tags:
-    - 'v*'  # Déclenchement sur les tags versionnés (ex: v1.0.0)
+      - main  # Déclenchement du workflow lors d'un push sur main
+  pull_request:
+    branches:
+      - main  # Déclenchement lors d'une pull request sur main
+  workflow_dispatch:  # Permet de lancer le workflow manuellement depuis GitHub
 
 jobs:
   deploy:
@@ -21,7 +23,7 @@ jobs:
 
     - name: Extract version information
       run: |
-        BRANCH=$(echo ${GITHUB_REF#refs/heads/})
+        BRANCH=${GITHUB_REF#refs/heads/}
         COMMIT_SHA=$(git rev-parse --short HEAD)
         TAG_VERSION=$(git describe --tags --always || echo "no-tag")
 
