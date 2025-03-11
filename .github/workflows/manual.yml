@@ -48,12 +48,12 @@ jobs:
         
         # Vérifier si l'image spécifique est présente
         IMAGE_FOUND=$(gcloud artifacts docker images list europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre \
-          --format="value(DISPLAY_NAME)" | grep -w "my-app" || true)
+          --format="value(DISPLAY_NAME)" | grep -w "pokemon" || true)
 
         if [[ -z "$IMAGE_FOUND" ]]; then
-          echo "❌ ERREUR : L'image 'my-app' n'a PAS été trouvée sur Artifact Registry !"
+          echo "❌ ERREUR : L'image 'pokemon' n'a PAS été trouvée sur Artifact Registry !"
           exit 1
         else
-          echo "✅ L'image Docker 'my-app' est bien présente sur Artifact Registry."
+          echo "✅ L'image Docker 'pokemon' est bien présente sur Artifact Registry."
         fi
 
