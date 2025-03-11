@@ -57,4 +57,17 @@ jobs:
           echo "✅ L'image Docker contenant 'pokemon' est bien présente sur Artifact Registry."
           echo "📦 Image trouvée : $IMAGE_FOUND"
         fi
+    - name: Run Docker Container from Artifact Registry
+      run: |
+        echo "🐳 Téléchargement et exécution de l’image depuis Artifact Registry..."
 
+        # Récupérer l’image la plus récente
+        docker pull europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest
+
+        # Lancer le conteneur en arrière-plan
+        docker run -d --name pokemon -p 3000:8080 europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest
+
+        # Vérifier si le conteneur tourne bien
+        docker ps
+
+        echo "✅ Conteneur Docker lancé avec succès !"
