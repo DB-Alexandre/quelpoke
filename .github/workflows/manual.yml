@@ -30,25 +30,25 @@ jobs:
 
     - name: Build and Tag Docker Image
       run: |
-        docker build -t europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest .
-        docker tag europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:$IMAGE_VERSION
+        docker build -t europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest .
+        docker tag europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:$IMAGE_VERSION
 
     - name: Push Docker Images
       run: |
-        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest
-        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:$IMAGE_VERSION
+        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest
+        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:$IMAGE_VERSION
 
     - name: Verify Image Exists in Artifact Registry
       run: |
         echo "📡 Vérification des images disponibles sur Artifact Registry..."
-
-        # Lister toutes les images en affichant clairement leurs noms et tags
+        
+        # Afficher la liste complète des images stockées
         gcloud artifacts docker images list europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre \
-          --format="table(NAME, TAGS, CREATE_TIME)"
+          --format="table(IMAGE, DIGEST, CREATE_TIME)"
 
-        # Vérifier si une image contenant "pokemon" existe
+        # Vérifier si une image contenant "pokemon" existe dans l’IMAGE complète
         IMAGE_FOUND=$(gcloud artifacts docker images list europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre \
-          --format="value(NAME)" | grep -i "pokemon" || true)
+          --format="value(IMAGE)" | grep -i "pokemon" || true)
 
         if [[ -z "$IMAGE_FOUND" ]]; then
           echo "❌ ERREUR : Aucune image contenant 'pokemon' n'a été trouvée sur Artifact Registry !"
@@ -57,3 +57,4 @@ jobs:
           echo "✅ L'image Docker contenant 'pokemon' est bien présente sur Artifact Registry."
           echo "📦 Image trouvée : $IMAGE_FOUND"
         fi
+
