@@ -1,0 +1,48 @@
+name: Build and Push to Artifact Registry
+
+on:
+  push:
+    branches:
+      - main  # Exécute l'action à chaque push sur main
+  tags:
+    - 'v*'  # Exécute aussi l'action lors du push d'un tag versionné (ex: v1.0.0)
+
+jobs:
+  deploy:
+    name: Build & Upload Artifact
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Configure Docker authentication
+      run: gcloud auth configure-docker europe-west9-docker.pkg.dev
+
+    - name: Extract version information
+      run: |
+        BRANCH=$(echo ${GITHUB_REF#refs/heads/})
+        COMMIT_SHA=$(git rev-parse --short HEAD)
+        TAG_VERSION=$(git describe --tags --always || echo "no-tag")
+        
+        if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        elif [[ "$TAG_VERSION" != "no-tag" ]]; then
+          VERSION=$TAG_VERSION
+        else
+          VERSION=$BRANCH-$COMMIT_SHA
+        fi
+
+        echo "IMAGE_VERSION=$VERSION" >> $GITHUB_ENV
+        echo "Commit SHA: $COMMIT_SHA"
+        echo "Final Version Tag: $VERSION"
+
+    - name: Build and Tag Docker Image
+      run: |
+        docker build -t europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:${{ env.IMAGE_VERSION }} .
+        docker tag europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:${{ env.IMAGE_VERSION }} europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest
+
+    - name: Push Docker Images
+      run: |
+        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:${{ env.IMAGE_VERSION }}
+        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest
