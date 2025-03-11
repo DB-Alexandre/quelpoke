@@ -74,10 +74,26 @@ jobs:
         docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest
         docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:$IMAGE_VERSION
 
-    - name: Run Deployed Docker Container
+    - name: Deploy to Remote Server
       run: |
-        echo "🐳 Téléchargement et exécution de l’image depuis Artifact Registry..."
-        docker pull europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest
-        docker run -d --name pokemon-container -p 8080:8080 europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest
-        docker ps
-        echo "✅ Conteneur Docker de production lancé avec succès !"
+        echo "🔑 Configuration SSH..."
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -p 2666 -H 213.246.39.240 >> ~/.ssh/known_hosts
+
+        echo "🚀 Connexion au serveur et déploiement..."
+        ssh -i ~/.ssh/deploy_key -p 2666 dockeruser@213.246.39.240 << 'EOF'
+          set -e
+          echo "📥 Pulling latest image from Artifact Registry..."
+          docker pull europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest
+
+          echo "🛑 Arrêt et suppression de l'ancien conteneur..."
+          docker stop pokemon-container || true
+          docker rm pokemon-container || true
+
+          echo "🐳 Démarrage du nouveau conteneur..."
+          docker run -d --name pokemon-container -p 3000:8080 europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/pokemon:latest
+
+          echo "✅ Déploiement terminé avec succès !"
+        EOF
