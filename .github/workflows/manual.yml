@@ -41,19 +41,19 @@ jobs:
     - name: Verify Image Exists in Artifact Registry
       run: |
         echo "📡 Vérification des images disponibles sur Artifact Registry..."
-        
-        # Afficher toutes les images disponibles
+
+        # Lister toutes les images en affichant clairement leurs noms et tags
         gcloud artifacts docker images list europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre \
-          --format="table(DISPLAY_NAME, TAGS, CREATE_TIME)"
-        
-        # Vérifier si l'image spécifique est présente
+          --format="table(NAME, TAGS, CREATE_TIME)"
+
+        # Vérifier si une image contenant "pokemon" existe
         IMAGE_FOUND=$(gcloud artifacts docker images list europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre \
-          --format="value(DISPLAY_NAME)" | grep -w "pokemon" || true)
+          --format="value(NAME)" | grep -i "pokemon" || true)
 
         if [[ -z "$IMAGE_FOUND" ]]; then
-          echo "❌ ERREUR : L'image 'pokemon' n'a PAS été trouvée sur Artifact Registry !"
+          echo "❌ ERREUR : Aucune image contenant 'pokemon' n'a été trouvée sur Artifact Registry !"
           exit 1
         else
-          echo "✅ L'image Docker 'pokemon' est bien présente sur Artifact Registry."
+          echo "✅ L'image Docker contenant 'pokemon' est bien présente sur Artifact Registry."
+          echo "📦 Image trouvée : $IMAGE_FOUND"
         fi
-
