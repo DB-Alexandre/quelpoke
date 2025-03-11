@@ -1,0 +1,83 @@
+name: Build, Test, Push & Run Docker Container
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build, Test & Upload Artifact
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Configure Docker authentication
+      run: gcloud auth configure-docker europe-west9-docker.pkg.dev
+
+    - name: Define Image Version
+      run: |
+        IMAGE_VERSION=${{ github.sha }}
+        echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
+
+    - name: Build Docker Image Locally (Test)
+      run: |
+        echo "🐳 Build de l'image Docker pour test..."
+        docker build -t my-app-local .
+
+    - name: Run Docker Container Locally (Test)
+      run: |
+        echo "🚀 Lancement du conteneur en test..."
+        docker run -d --name my-app-test -p 8080:8080 my-app-local
+
+    - name: Check if Container is Running
+      run: |
+        sleep 5  # Attente du démarrage
+        if ! docker ps | grep -q "my-app-test"; then
+          echo "❌ ERREUR : Le conteneur ne s'est pas lancé correctement."
+          exit 1
+        fi
+        echo "✅ Conteneur en test lancé avec succès !"
+
+    - name: Verify Application Response
+      run: |
+        sleep 5
+        if curl -s http://localhost:8080 > /dev/null; then
+          echo "✅ Le serveur répond correctement sur http://localhost:8080"
+        else
+          echo "❌ ERREUR : Le serveur ne répond pas sur http://localhost:8080"
+          docker logs my-app-test
+          exit 1
+        fi
+
+    - name: Stop and Remove Test Container
+      run: |
+        echo "🛑 Nettoyage du conteneur de test..."
+        docker stop my-app-test
+        docker rm my-app-test
+
+    - name: Build and Tag Docker Image for Deployment
+      run: |
+        docker build -t europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest .
+        docker tag europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:$IMAGE_VERSION
+
+    - name: Push Docker Images (if tests pass)
+      run: |
+        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest
+        docker push europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:$IMAGE_VERSION
+
+    - name: Run Deployed Docker Container
+      run: |
+        echo "🐳 Téléchargement et exécution de l’image depuis Artifact Registry..."
+        docker pull europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest
+        docker run -d --name my-app-container -p 8080:8080 europe-west9-docker.pkg.dev/cs-poc-hpzdycpiqjyvinhrczvlwcn/student-alexandre/my-app:latest
+        docker ps
+        echo "✅ Conteneur Docker de production lancé avec succès !"
