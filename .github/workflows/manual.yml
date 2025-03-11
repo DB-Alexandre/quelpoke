@@ -3,8 +3,8 @@ name: Build and Push to Artifact Registry
 on:
   push:
     branches:
-      - main  # Déclenchement sur push vers main
-  workflow_dispatch:  # Permet de déclencher manuellement depuis GitHub
+      - main  # Déclenchement automatique sur push vers main
+  workflow_dispatch:  # Permet de l’exécuter manuellement
 
 jobs:
   deploy:
@@ -15,19 +15,13 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Authenticate with Google Cloud
-      run: |
-        gcloud auth login --quiet
-        gcloud auth application-default login --quiet
-        gcloud config set account ton-email@gmail.com
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
 
     - name: Configure Docker authentication
       run: gcloud auth configure-docker europe-west9-docker.pkg.dev
-
-    - name: Generate Access Token and Authenticate Docker
-      run: |
-        ACCESS_TOKEN=$(gcloud auth print-access-token)
-        echo $ACCESS_TOKEN | docker login -u oauth2accesstoken --password-stdin https://europe-west9-docker.pkg.dev
 
     - name: Build and Tag Docker Image
       run: |
